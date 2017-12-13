@@ -4,6 +4,7 @@ package com.reactlibrary;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ActivityEventListener;
@@ -87,11 +88,11 @@ public class RNReactNativeImportShareModule extends ReactContextBaseJavaModule i
   }
 
   @ReactMethod
-	void getTest(Callback callback) {
-	    callback.invoke("JAVA - RAN");
-	}
+    void getTest(Callback callback) {
+        callback.invoke("JAVA - RAN");
+    }
 
-	// removed @Override temporarily just to get it working on different versions of RN
+    // removed @Override temporarily just to get it working on different versions of RN
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         // this.promise.resolve( data.getDataString() );
         Log.d(LOG_TAG, "MODULE GOT -> onActivityResult Activity -> " + activity + " : Intent -> " + data );
@@ -106,9 +107,19 @@ public class RNReactNativeImportShareModule extends ReactContextBaseJavaModule i
     @Override
     public void onNewIntent(Intent intent) {
         Log.d(LOG_TAG, "MODULE GOT -> ON NEW INTENT -> " + Intent.ACTION_SEND + " - " + intent);
-        checkIntent(intent);
-    }
 
+        WritableMap map = Arguments.createMap();
+
+        if (intent != null) {
+            map = processIntent(intent);
+            if (reactContext != null) {
+                reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                        .emit("ShareIntent", map);
+            }
+        }
+
+        // checkIntent(intent);
+    }
 
     @Override
     public void onHostPause() {
